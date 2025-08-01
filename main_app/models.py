@@ -1,13 +1,6 @@
 from django.db import models
 from django.urls import reverse
 
-# Meals choices for the Feeding model
-MEALS = (
-    ('B', 'Breakfast'),
-    ('L', 'Lunch'),
-    ('D', 'Dinner')
-)
-
 #  Cat Model
 class Cat(models.Model):
     name = models.CharField(max_length=100)
@@ -20,7 +13,13 @@ class Cat(models.Model):
     
     def get_absolute_url(self):
         return reverse('cat-detail', kwargs={'cat_id': self.id})
-
+    
+# Meals choices for the Feeding model
+MEALS = (
+    ('B', 'Breakfast'),
+    ('L', 'Lunch'),
+    ('D', 'Dinner')
+)
 #Feeding Model
 class Feeding(models.Model):
     date = models.DateField('Feeding date')
@@ -32,5 +31,19 @@ class Feeding(models.Model):
     # One-to-Many: Each feeding is linked to one cat
     cat = models.ForeignKey(Cat, on_delete=models.CASCADE)
 
+    class Meta:
+        ordering = ['-date']
+
     def __str__(self):
         return f"{self.get_meal_display()} on {self.date}"
+
+# Add the Toy model
+class Toy(models.Model):
+    name = models.CharField(max_length=50)
+    color = models.CharField(max_length=20)
+
+    def __str__(self):
+        return self.name
+
+    def get_absolute_url(self):
+        return reverse('toy-detail', kwargs={'pk': self.id})
