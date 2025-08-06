@@ -14,29 +14,20 @@ def about(request):
 
 # views.py
 
-# class Cat:
-#     def __init__(self, name, breed, description, age):
-#         self.name = name
-#         self.breed = breed
-#         self.description = description
-#         self.age = age
-
-# # Create a list of Cat instances
-# cats = [
-#     Cat('Lolo', 'tabby', 'Kinda rude.', 3),
-#     Cat('Sachi', 'tortoiseshell', 'Looks like a turtle.', 0),
-#     Cat('Fancy', 'bombay', 'Happy fluff ball.', 4),
-#     Cat('Bonk', 'selkirk rex', 'Meows loudly.', 6)
-# ]
-
 def cat_index(request):
     cats = Cat.objects.all()  # look familiar?
     return render(request, 'cats/index.html', {'cats': cats})
 
 def cat_detail(request, cat_id):
     cat = Cat.objects.get(id=cat_id)
+    toys = Toy.objects.all()  # Fetch all toys
+    toys_cat_doesnt_have = Toy.objects.exclude(id__in = cat.toys.all().values_list('id'))
     feeding_form = FeedingForm()
-    return render(request, 'cats/detail.html', {'cat': cat, 'feeding_form': feeding_form})
+    return render(request, 'cats/detail.html', {
+        'cat': cat, 
+        'toys': toys_cat_doesnt_have,
+        'feeding_form': feeding_form
+        })
 
 def add_feeding(request, cat_id):
     # create a ModelForm instance using the data in request.POST
@@ -48,6 +39,15 @@ def add_feeding(request, cat_id):
         new_feeding = form.save(commit=False)
         new_feeding.cat_id = cat_id
         new_feeding.save()
+    return redirect('cat-detail', cat_id=cat_id)
+
+def associate_toy(request, cat_id, toy_id):
+    Cat.objects.get(id=cat_id).toys.add(toy_id)
+    return redirect('cat-detail', cat_id=cat_id)
+
+# Removing a toy
+def remove_toy(request, cat_id, toy_id):
+    Cat.objects.get(id=cat_id).toys.remove(toy_id)
     return redirect('cat-detail', cat_id=cat_id)
 
 class CatCreate(CreateView):
@@ -81,3 +81,4 @@ class ToyUpdate(UpdateView):
 class ToyDelete(DeleteView):
     model = Toy
     success_url = '/toys/'
+
